@@ -1,4 +1,4 @@
-import { db, storage, ref, push, set, update, get, storageRef, uploadBytesResumable, getDownloadURL } from './firebase-config.js';
+import { db, ref, push, set, update, get } from './firebase-config.js';
 
 const form = document.getElementById('addMemberForm');
 const messageBox = document.getElementById('formMessage');
@@ -93,16 +93,16 @@ form.addEventListener('submit', async (e) => {
         let profileImageUrl = editId ? undefined : "";
         let idCardImageUrl = editId ? undefined : "";
 
-        // Upload Profile Image
+        // Convert Profile Image to Base64
         const profileFile = document.getElementById('profileImage').files[0];
         if (profileFile) {
-            profileImageUrl = await uploadImage(profileFile, `profiles/${Date.now()}_${profileFile.name}`);
+            profileImageUrl = await convertFileToBase64(profileFile);
         }
 
-        // Upload ID Card Image
+        // Convert ID Card Image to Base64
         const idCardFile = document.getElementById('idCardImage').files[0];
         if (idCardFile) {
-            idCardImageUrl = await uploadImage(idCardFile, `idcards/${Date.now()}_${idCardFile.name}`);
+            idCardImageUrl = await convertFileToBase64(idCardFile);
         }
 
         const memberData = {
@@ -132,14 +132,14 @@ form.addEventListener('submit', async (e) => {
             showMessage("تمت إضافة العضو بنجاح", "success");
         }
 
-        // ✅ التوجيه الصحيح للصفحة الرئيسية المتوافق مع GitHub Pages
+        // التوجيه التلقائي بعد النجاح
         setTimeout(() => { 
             window.location.href = "index.html"; 
         }, 1500);
 
     } catch (error) {
         console.error("Save Error:", error);
-        showMessage("تعذر حفظ البيانات! تأكد من قواعد صلاحيات Firebase Storage.", "error");
+        showMessage("تعذر حفظ بيانات العضو، تأكد من إدخال البيانات بشكل صحيح.", "error");
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = editId ? `<i data-lucide="save"></i> حفظ التعديلات` : `<i data-lucide="save"></i> إضافة العضو`;
@@ -147,23 +147,13 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-async function uploadImage(file, path) {
+// Helper: Convert File to Base64
+function convertFileToBase64(file) {
     return new Promise((resolve, reject) => {
-        const imageRef = storageRef(storage, path);
-        const uploadTask = uploadBytesResumable(imageRef, file);
-
-        uploadTask.on('state_changed', 
-            (snapshot) => {}, 
-            (error) => { reject(error); }, 
-            async () => {
-                try {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    resolve(downloadURL);
-                } catch (err) {
-                    reject(err);
-                }
-            }
-        );
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
     });
 }
 

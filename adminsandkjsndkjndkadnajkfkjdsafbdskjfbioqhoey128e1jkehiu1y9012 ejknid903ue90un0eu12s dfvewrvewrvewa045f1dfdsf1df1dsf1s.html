@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة عضو جديد - لوحة الإدارة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i data-lucide="building-2" class="gold-icon large"></i>
+                <div>
+                    <h2>شركة الحلبي</h2>
+                    <p>لوحة الإدارة</p>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a href="/" class="nav-item"><i data-lucide="users"></i> الأعضاء</a>
+                <a href="#" class="nav-item active"><i data-lucide="plus-circle"></i> إضافة عضو</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="page-title">
+                    <h1>إضافة عضو جديد</h1>
+                    <p>قم بإدخال بيانات العضو لإضافته إلى قاعدة بيانات الشركة</p>
+                    <div class="breadcrumb"><a href="/">الرئيسية</a> / <span>إضافة عضو</span></div>
+                </div>
+            </header>
+
+            <div class="form-container card-panel">
+                <form id="addMemberForm">
+                    <div id="formMessage" class="message-box" style="display: none;"></div>
+                    
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>الاسم الكامل <span class="required">*</span></label>
+                            <input type="text" id="name" required placeholder="أدخل الاسم الثلاثي أو الرباعي">
+                        </div>
+                        <div class="input-group">
+                            <label>السن <span class="required">*</span></label>
+                            <input type="number" id="age" required placeholder="أدخل السن">
+                        </div>
+                        <div class="input-group">
+                            <label>المنصب</label>
+                            <input type="text" id="position" placeholder="مثال: مدير تنفيذي">
+                        </div>
+                        <div class="input-group">
+                            <label>الإدارة</label>
+                            <input type="text" id="department" placeholder="مثال: الموارد البشرية">
+                        </div>
+                        <div class="input-group">
+                            <label>البريد الإلكتروني</label>
+                            <input type="email" id="email" placeholder="example@company.com">
+                        </div>
+                        <div class="input-group">
+                            <label>رقم الهاتف</label>
+                            <input type="text" id="phone" placeholder="01xxxxxxxxx">
+                        </div>
+                        <div class="input-group">
+                            <label>مكان السكن</label>
+                            <input type="text" id="address" placeholder="المدينة، الحي">
+                        </div>
+                        <div class="input-group">
+                            <label>تاريخ الانضمام</label>
+                            <input type="date" id="joinDate">
+                        </div>
+                        <div class="input-group">
+                            <label>الحالة</label>
+                            <select id="status">
+                                <option value="نشط">نشط</option>
+                                <option value="غير نشط">غير نشط</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid image-uploads">
+                        <div class="input-group file-upload">
+                            <label>الصورة الشخصية</label>
+                            <input type="file" id="profileImage" accept="image/*">
+                            <div class="preview-box" id="profilePreview"><span>اختر صورة</span></div>
+                        </div>
+                        <div class="input-group file-upload">
+                            <label>صورة البطاقة الشخصية</label>
+                            <input type="file" id="idCardImage" accept="image/*">
+                            <div class="preview-box" id="idCardPreview"><span>اختر صورة</span></div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary large" id="submitBtn">
+                            <i data-lucide="save"></i> إضافة العضو
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="/js/firebase-config.js"></script>
+    <script type="module" src="/js/admin.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -35,10 +35,13 @@ const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('edit');
 
 if(editId) {
-    document.querySelector('.page-title h1').textContent = "تعديل بيانات العضو";
-    document.querySelector('.page-title p').textContent = "تعديل البيانات المحفوظة للعضو";
+    const titleEl = document.querySelector('.page-title h1');
+    const descEl = document.querySelector('.page-title p');
+    if(titleEl) titleEl.textContent = "تعديل بيانات العضو";
+    if(descEl) descEl.textContent = "تعديل البيانات المحفوظة للعضو";
+    
     submitBtn.innerHTML = `<i data-lucide="save"></i> حفظ التعديلات`;
-    lucide.createIcons();
+    if(window.lucide) lucide.createIcons();
     loadMemberData(editId);
 }
 
@@ -66,6 +69,7 @@ async function loadMemberData(id) {
             }
         }
     } catch (error) {
+        console.error("Fetch Member Error:", error);
         showMessage("حدث خطأ أثناء جلب بيانات العضو", "error");
     }
 }
@@ -113,7 +117,6 @@ form.addEventListener('submit', async (e) => {
             status: document.getElementById('status').value
         };
 
-        // Only update images if new ones were uploaded (or keep empty if creating new)
         if (profileImageUrl !== undefined) memberData.profileImage = profileImageUrl;
         if (idCardImageUrl !== undefined) memberData.idCardImage = idCardImageUrl;
 
@@ -121,25 +124,26 @@ form.addEventListener('submit', async (e) => {
             const memberRef = ref(db, `members/${editId}`);
             await update(memberRef, memberData);
             showMessage("تم تعديل بيانات العضو بنجاح", "success");
-            setTimeout(() => { window.location.href = "/"; }, 1500);
         } else {
             memberData.createdAt = new Date().toISOString();
             const membersListRef = ref(db, 'members');
             const newMemberRef = push(membersListRef);
             await set(newMemberRef, memberData);
             showMessage("تمت إضافة العضو بنجاح", "success");
-            form.reset();
-            document.getElementById('profilePreview').innerHTML = `<span>اختر صورة</span>`;
-            document.getElementById('idCardPreview').innerHTML = `<span>اختر صورة</span>`;
         }
+
+        // ✅ التوجيه الصحيح للصفحة الرئيسية المتوافق مع GitHub Pages
+        setTimeout(() => { 
+            window.location.href = "index.html"; 
+        }, 1500);
 
     } catch (error) {
         console.error("Save Error:", error);
-        showMessage("تعذر حفظ بيانات العضو. تأكد من اتصالك أو إعدادات قاعدة البيانات.", "error");
+        showMessage("تعذر حفظ البيانات! تأكد من قواعد صلاحيات Firebase Storage.", "error");
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = editId ? `<i data-lucide="save"></i> حفظ التعديلات` : `<i data-lucide="save"></i> إضافة العضو`;
-        lucide.createIcons();
+        if(window.lucide) lucide.createIcons();
     }
 });
 
@@ -149,11 +153,15 @@ async function uploadImage(file, path) {
         const uploadTask = uploadBytesResumable(imageRef, file);
 
         uploadTask.on('state_changed', 
-            (snapshot) => { /* Can add progress bar logic here */ }, 
+            (snapshot) => {}, 
             (error) => { reject(error); }, 
             async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                resolve(downloadURL);
+                try {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    resolve(downloadURL);
+                } catch (err) {
+                    reject(err);
+                }
             }
         );
     });

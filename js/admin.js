@@ -1,0 +1,168 @@
+import { db, storage, ref, push, set, update, get, storageRef, uploadBytesResumable, getDownloadURL } from './firebase-config.js';
+
+const form = document.getElementById('addMemberForm');
+const messageBox = document.getElementById('formMessage');
+const submitBtn = document.getElementById('submitBtn');
+
+// Image Previews
+setupImagePreview('profileImage', 'profilePreview');
+setupImagePreview('idCardImage', 'idCardPreview');
+
+function setupImagePreview(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    
+    if(!input || !preview) return;
+
+    preview.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = `<span>اختر صورة</span>`;
+        }
+    });
+}
+
+// Check for Edit Mode
+const urlParams = new URLSearchParams(window.location.search);
+const editId = urlParams.get('edit');
+
+if(editId) {
+    document.querySelector('.page-title h1').textContent = "تعديل بيانات العضو";
+    document.querySelector('.page-title p').textContent = "تعديل البيانات المحفوظة للعضو";
+    submitBtn.innerHTML = `<i data-lucide="save"></i> حفظ التعديلات`;
+    lucide.createIcons();
+    loadMemberData(editId);
+}
+
+async function loadMemberData(id) {
+    const memberRef = ref(db, `members/${id}`);
+    try {
+        const snapshot = await get(memberRef);
+        if(snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('name').value = data.name || '';
+            document.getElementById('age').value = data.age || '';
+            document.getElementById('position').value = data.position || '';
+            document.getElementById('department').value = data.department || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('phone').value = data.phone || '';
+            document.getElementById('address').value = data.address || '';
+            document.getElementById('joinDate').value = data.joinDate || '';
+            document.getElementById('status').value = data.status || 'نشط';
+
+            if(data.profileImage) {
+                document.getElementById('profilePreview').innerHTML = `<img src="${data.profileImage}" alt="Profile">`;
+            }
+            if(data.idCardImage) {
+                document.getElementById('idCardPreview').innerHTML = `<img src="${data.idCardImage}" alt="ID Card">`;
+            }
+        }
+    } catch (error) {
+        showMessage("حدث خطأ أثناء جلب بيانات العضو", "error");
+    }
+}
+
+// Handle Form Submit
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('name').value.trim();
+    const age = document.getElementById('age').value.trim();
+
+    if(!name || !age) {
+        showMessage("الاسم والسن حقول إلزامية", "error");
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = "جاري الحفظ...";
+
+    try {
+        let profileImageUrl = editId ? undefined : "";
+        let idCardImageUrl = editId ? undefined : "";
+
+        // Upload Profile Image
+        const profileFile = document.getElementById('profileImage').files[0];
+        if (profileFile) {
+            profileImageUrl = await uploadImage(profileFile, `profiles/${Date.now()}_${profileFile.name}`);
+        }
+
+        // Upload ID Card Image
+        const idCardFile = document.getElementById('idCardImage').files[0];
+        if (idCardFile) {
+            idCardImageUrl = await uploadImage(idCardFile, `idcards/${Date.now()}_${idCardFile.name}`);
+        }
+
+        const memberData = {
+            name,
+            age: Number(age),
+            position: document.getElementById('position').value.trim(),
+            department: document.getElementById('department').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            joinDate: document.getElementById('joinDate').value,
+            status: document.getElementById('status').value
+        };
+
+        // Only update images if new ones were uploaded (or keep empty if creating new)
+        if (profileImageUrl !== undefined) memberData.profileImage = profileImageUrl;
+        if (idCardImageUrl !== undefined) memberData.idCardImage = idCardImageUrl;
+
+        if (editId) {
+            const memberRef = ref(db, `members/${editId}`);
+            await update(memberRef, memberData);
+            showMessage("تم تعديل بيانات العضو بنجاح", "success");
+            setTimeout(() => { window.location.href = "/"; }, 1500);
+        } else {
+            memberData.createdAt = new Date().toISOString();
+            const membersListRef = ref(db, 'members');
+            const newMemberRef = push(membersListRef);
+            await set(newMemberRef, memberData);
+            showMessage("تمت إضافة العضو بنجاح", "success");
+            form.reset();
+            document.getElementById('profilePreview').innerHTML = `<span>اختر صورة</span>`;
+            document.getElementById('idCardPreview').innerHTML = `<span>اختر صورة</span>`;
+        }
+
+    } catch (error) {
+        console.error("Save Error:", error);
+        showMessage("تعذر حفظ بيانات العضو. تأكد من اتصالك أو إعدادات قاعدة البيانات.", "error");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = editId ? `<i data-lucide="save"></i> حفظ التعديلات` : `<i data-lucide="save"></i> إضافة العضو`;
+        lucide.createIcons();
+    }
+});
+
+async function uploadImage(file, path) {
+    return new Promise((resolve, reject) => {
+        const imageRef = storageRef(storage, path);
+        const uploadTask = uploadBytesResumable(imageRef, file);
+
+        uploadTask.on('state_changed', 
+            (snapshot) => { /* Can add progress bar logic here */ }, 
+            (error) => { reject(error); }, 
+            async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve(downloadURL);
+            }
+        );
+    });
+}
+
+function showMessage(msg, type) {
+    messageBox.textContent = msg;
+    messageBox.className = `message-box message-${type}`;
+    messageBox.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { messageBox.style.display = 'none'; }, 5000);
+}

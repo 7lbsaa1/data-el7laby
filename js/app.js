@@ -30,7 +30,7 @@ onValue(membersRef, (snapshot) => {
     } else {
         tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">
             لا يوجد أعضاء حتى الآن. <br><br>
-            <a href="/adminsandkjsndkjndkadnajkfkjdsafbdskjfbioqhoey128e1jkehiu1y9012%20ejknid903ue90un0eu12s%20dfvewrvewrvewa045f1dfdsf1df1dsf1s" class="btn btn-primary">إضافة عضو جديد</a>
+            <a href="./adminsandkjsndkjndkadnajkfkjdsafbdskjfbioqhoey128e1jkehiu1y9012%20ejknid903ue90un0eu12s%20dfvewrvewrvewa045f1dfdsf1df1dsf1s.html" class="btn btn-primary">إضافة عضو جديد</a>
         </td></tr>`;
         updateStats([]);
     }
@@ -46,27 +46,28 @@ function updateDashboard(membersList) {
 }
 
 function updateStats(membersList) {
-    statTotal.textContent = membersList.length;
+    if(statTotal) statTotal.textContent = membersList.length;
     
     const activeMembers = membersList.filter(m => m.status === 'نشط').length;
-    statActive.textContent = activeMembers;
+    if(statActive) statActive.textContent = activeMembers;
     
     const departments = new Set(membersList.map(m => m.department).filter(Boolean));
-    statDepts.textContent = departments.size;
+    if(statDepts) statDepts.textContent = departments.size;
     
     const positions = new Set(membersList.map(m => m.position).filter(Boolean));
-    statPositions.textContent = positions.size;
+    if(statPositions) statPositions.textContent = positions.size;
 
-    // Calculate new members this month (simplified logic)
     const currentMonth = new Date().getMonth();
     const newMembers = membersList.filter(m => {
         if(!m.joinDate) return false;
         return new Date(m.joinDate).getMonth() === currentMonth;
     }).length;
-    statNew.textContent = newMembers;
+    if(statNew) statNew.textContent = newMembers;
 
-    document.getElementById('currentCount').textContent = membersList.length;
-    document.getElementById('totalCount').textContent = membersList.length;
+    const currentEl = document.getElementById('currentCount');
+    const totalEl = document.getElementById('totalCount');
+    if(currentEl) currentEl.textContent = membersList.length;
+    if(totalEl) totalEl.textContent = membersList.length;
 }
 
 function updateTable(membersList) {
@@ -74,8 +75,7 @@ function updateTable(membersList) {
     membersList.forEach(member => {
         const tr = document.createElement('tr');
         
-        // Avatar logic
-        let avatarHtml = `<div class="member-avatar text-avatar">${member.name.charAt(0)}</div>`;
+        let avatarHtml = `<div class="member-avatar text-avatar">${(member.name || 'ع').charAt(0)}</div>`;
         if (member.profileImage) {
             avatarHtml = `<img src="${member.profileImage}" alt="${member.name}" class="member-avatar">`;
         }
@@ -86,7 +86,7 @@ function updateTable(membersList) {
             <td>
                 <div class="member-cell">
                     ${avatarHtml}
-                    <span>${member.name}</span>
+                    <span>${member.name || ''}</span>
                 </div>
             </td>
             <td>${member.position || 'غير متوفر'}</td>
@@ -106,7 +106,7 @@ function updateTable(membersList) {
         tableBody.appendChild(tr);
     });
     
-    lucide.createIcons();
+    if(window.lucide) lucide.createIcons();
     attachTableEvents();
 }
 
@@ -147,11 +147,11 @@ function attachTableEvents() {
         });
     });
 
-    // Edit button can redirect to admin page with query param (simple implementation without full SPA router)
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.getAttribute('data-id');
-            window.location.href = `/adminsandkjsndkjndkadnajkfkjdsafbdskjfbioqhoey128e1jkehiu1y9012%20ejknid903ue90un0eu12s%20dfvewrvewrvewa045f1dfdsf1df1dsf1s?edit=${id}`;
+            // ✅ تم تصحيح المسار النسبي
+            window.location.href = `./adminsandkjsndkjndkadnajkfkjdsafbdskjfbioqhoey128e1jkehiu1y9012%20ejknid903ue90un0eu12s%20dfvewrvewrvewa045f1dfdsf1df1dsf1s.html?edit=${id}`;
         });
     });
 }
@@ -165,11 +165,11 @@ function showDetails(id) {
         <div style="text-align: center; margin-bottom: 20px;">
             ${member.profileImage 
                 ? `<img src="${member.profileImage}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold);">` 
-                : `<div style="width: 100px; height: 100px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; color: var(--gold); border: 2px solid var(--gold);">${member.name.charAt(0)}</div>`
+                : `<div style="width: 100px; height: 100px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; color: var(--gold); border: 2px solid var(--gold);">${(member.name || 'ع').charAt(0)}</div>`
             }
             <h3 style="margin-top: 10px; color: var(--gold-light);">${member.name}</h3>
         </div>
-        <div class="detail-row"><span class="detail-label">السن:</span> <span>${member.age}</span></div>
+        <div class="detail-row"><span class="detail-label">السن:</span> <span>${member.age || 'غير محدد'}</span></div>
         <div class="detail-row"><span class="detail-label">رقم الهاتف:</span> <span dir="ltr">${member.phone || 'غير متوفر'}</span></div>
         <div class="detail-row"><span class="detail-label">البريد الإلكتروني:</span> <span>${member.email || 'غير متوفر'}</span></div>
         <div class="detail-row"><span class="detail-label">مكان السكن:</span> <span>${member.address || 'غير متوفر'}</span></div>

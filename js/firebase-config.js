@@ -1,7 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getDatabase, ref, push, set, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, push, set, update, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+// بيانات مشروعك الخاصة بـ Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBWTSFTecq2_QeDyg90mM1hPNytwPXYyZ0",
   authDomain: "admin-37e09.firebaseapp.com",
@@ -13,9 +13,9 @@ const firebaseConfig = {
   measurementId: "G-GQDLTK8FY6"
 };
 
-// Initialize Firebase
+// تهيئة التطبيق وقاعدة البيانات
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const storage = getStorage(app);
 
-export { db, storage, ref, push, set, update, remove, onValue, get, storageRef, uploadBytesResumable, getDownloadURL };
+// تصدير الأدوات اللازمة لباقي الملفات (admin.js و app.js)
+export { db, ref, push, set, update, get, onValue, remove };

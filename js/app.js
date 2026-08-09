@@ -150,7 +150,6 @@ function attachTableEvents() {
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.getAttribute('data-id');
-            // ✅ تم تصحيح المسار النسبي
             window.location.href = `./adminsandkjsndkjndkadnajkfkjdsafbdskjfbioqhoey128e1jkehiu1y9012%20ejknid903ue90un0eu12s%20dfvewrvewrvewa045f1dfdsf1df1dsf1s.html?edit=${id}`;
         });
     });
